@@ -2,6 +2,7 @@
 using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Receive.Helpers;
 
 namespace Receive
 {
@@ -9,47 +10,25 @@ namespace Receive
     {
         static void Main(string[] args)
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
+            var factory = new ConnectionFactory() { HostName = Helpers.Constants.HOST };
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
-                channel.ExchangeDeclare(exchange: "REPORT_PRIORITY_EXCHANGE",
+                channel.ExchangeDeclare(exchange: Constants.EXCHANGE,
                                    type: "direct");
 
-                // var queueName = channel.QueueDeclare().QueueName;
-                channel.QueueDeclare(queue: "F1",
-                                durable: false,
-                                exclusive: false,
-                                autoDelete: false,
-                                arguments: null);
+                QueueConfigHelper.AddQueueToChannel(channel, "F1");
+                QueueConfigHelper.AddQueueToChannel(channel, "F2");
+                QueueConfigHelper.AddQueueToChannel(channel, "F3");
 
-                channel.QueueDeclare(queue: "F2",
-                                 durable: false,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
-
-                channel.QueueDeclare(queue: "F3",
-                durable: false,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
-
-                if (args.Length < 1)
-                {
-                    Console.Error.WriteLine("Usage: {0} [F1] [F2] [F3]",
-                                            Environment.GetCommandLineArgs()[0]);
-                    Console.WriteLine(" Press [enter] to exit.");
-                    Console.ReadLine();
-                    Environment.ExitCode = 1;
+                if (HasArgsError(args))
                     return;
-                }
 
-                foreach (var weightProcessing in args)
+                foreach (var queueName in args)
                 {
-                    channel.QueueBind(queue: weightProcessing,
-                                      exchange: "REPORT_PRIORITY_EXCHANGE",
-                                      routingKey: weightProcessing);
+                    channel.QueueBind(queue: queueName,
+                                      exchange: Constants.EXCHANGE,
+                                      routingKey: queueName);
                 }
 
                 Console.WriteLine(" [*] Waiting for messages.");
@@ -62,7 +41,7 @@ namespace Receive
 
                     var routingKey = ea.RoutingKey;
                     Console.WriteLine(" [x] Received '{0}':'{1}'",
-                                      $">> {QueueWeightDecoder(routingKey)} <<", message);
+                                      $">> {Util.QueueWeightDecoder(routingKey)} <<", message);
                 };
 
                 foreach (var weightProcessing in args)
@@ -75,18 +54,19 @@ namespace Receive
                 Console.ReadLine();
             }
         }
-
-        static string QueueWeightDecoder(string routingKey)
+        static bool HasArgsError(string[] args)
         {
-            switch (routingKey.ToUpperInvariant())
+            if (args.Length < 1)
             {
-                case "F1":
-                    return "HIGH RESOURCE CONSUMPTION QUEUE - SLOW PROCESSING";
-                case "F3":
-                    return "LOW RESOURCE CONSUMPTION QUEUE - FAST PROCESSING";
-                default:
-                    return "F2 QUEUE - ORDINARY PROCESSING";
+                Console.Error.WriteLine("Usage: {0} [F1] [F2] [F3]",
+                                        Environment.GetCommandLineArgs()[0]);
+                Console.WriteLine(" Press [enter] to exit.");
+                Console.ReadLine();
+                Environment.ExitCode = 1;
+                return true;
             }
+            else
+                return false;
         }
     }
 }
