@@ -15,7 +15,9 @@ namespace Receive
             using (var channel = connection.CreateModel())
             {
                 channel.ExchangeDeclare(exchange: Constants.EXCHANGE,
-                                   type: "direct");
+                                   type: "direct",
+                                   durable:true,
+                                   autoDelete: false);
 
                 QueueConfigHelper.AddQueueToChannel(channel, "F1");
                 QueueConfigHelper.AddQueueToChannel(channel, "F2");
@@ -28,7 +30,8 @@ namespace Receive
                 {
                     channel.QueueBind(queue: queueName,
                                       exchange: Constants.EXCHANGE,
-                                      routingKey: queueName);
+                                      routingKey: queueName
+                                      );
                 }
 
                 Console.WriteLine(" [*] Waiting for messages.");
