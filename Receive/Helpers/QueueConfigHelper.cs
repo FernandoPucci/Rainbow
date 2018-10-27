@@ -8,7 +8,7 @@ namespace Receive.Helpers
         {
 
             channel.QueueDeclare(queue: queueName,
-                            durable: false,
+                            durable: true,
                             exclusive: false,
                             autoDelete: false,
                             arguments: null);

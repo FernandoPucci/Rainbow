@@ -19,9 +19,9 @@ namespace Receive
                                    durable:true,
                                    autoDelete: false);
 
-                QueueConfigHelper.AddQueueToChannel(channel, "F1");
-                QueueConfigHelper.AddQueueToChannel(channel, "F2");
-                QueueConfigHelper.AddQueueToChannel(channel, "F3");
+                QueueConfigHelper.AddQueueToChannel(channel, Constants.F1_QUEUE);
+                QueueConfigHelper.AddQueueToChannel(channel, Constants.F2_QUEUE);
+                QueueConfigHelper.AddQueueToChannel(channel, Constants.F3_QUEUE);
 
                 if (HasArgsError(args))
                     return;
