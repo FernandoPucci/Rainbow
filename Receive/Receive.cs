@@ -53,6 +53,7 @@ namespace Receive
                     // positively acknowledge a single delivery, the message will
                     // be discarded
                     channel.BasicAck(ea.DeliveryTag, false);
+                    Console.WriteLine($"*******     ACK!!    ******* \n{message}");
                 };
 
                 foreach (var weightProcessing in args)
