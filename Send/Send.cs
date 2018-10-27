@@ -35,7 +35,7 @@ namespace Send
                 //declare properties and delivery mode to persistent (2)
                 IBasicProperties prop = channel.CreateBasicProperties();
                 prop.ContentType = "text/plain";
-                prop.DeliveryMode = 2;
+                prop.DeliveryMode = 2; //persistent
 
                 channel.BasicPublish(exchange: "REPORT_PRIORITY_EXCHANGE",
                                      routingKey: queueToProcess,

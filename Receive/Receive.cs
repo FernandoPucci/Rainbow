@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Receive.Helpers;
@@ -27,7 +28,7 @@ namespace Receive
                     return;
 
                 foreach (var queueName in args)
-                {
+                {                    
                     channel.QueueBind(queue: queueName,
                                       exchange: Constants.EXCHANGE,
                                       routingKey: queueName
@@ -37,20 +38,27 @@ namespace Receive
                 Console.WriteLine(" [*] Waiting for messages.");
 
                 var consumer = new EventingBasicConsumer(channel);
+                
                 consumer.Received += (model, ea) =>
-                {
+                {                    
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
 
                     var routingKey = ea.RoutingKey;
                     Console.WriteLine(" [x] Received '{0}':'{1}'",
                                       $">> {Util.QueueWeightDecoder(routingKey)} <<", message);
+                    
+                    //Thread.Sleep(15000);   //only for test purposes
+
+                    // positively acknowledge a single delivery, the message will
+                    // be discarded
+                    channel.BasicAck(ea.DeliveryTag, false);
                 };
 
                 foreach (var weightProcessing in args)
                 {
                     channel.BasicConsume(queue: weightProcessing,
-                                         autoAck: true,
+                                         autoAck: false,
                                          consumer: consumer);
                 }
                 Console.WriteLine(" Press [enter] to exit.");
